@@ -1,10 +1,11 @@
 version: '3'
 services:
   mysql:
-    image: mariadb:10.3.17
+    image: mariadb:latest
+    container_name: mariadb-server-develop
     command: --max_allowed_packet=256M
     volumes:
-      - "./data/db:/var/lib/mysql:delegated"
+      - "/home/docker/mysql/bancodedados:/var/lib/mysql:delegated"
     ports:
        - "3306:3306"
     environment:
@@ -12,8 +13,12 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    network_mode: 'bridge'
+    restart: always
+    
   litespeed:
     image: litespeedtech/openlitespeed:${OLS_VERSION}-${PHP_VERSION}
+    container_name: openlitespeed-develop
     env_file:
       - .env
     volumes:
@@ -31,11 +36,21 @@ services:
     restart: always
     environment:
       TZ: ${TimeZone}
+    network_mode: 'bridge'
+    restart: always
+    links: 
+      - 'mysql'
   phpmyadmin:
-    #image: bitnami/phpmyadmin:latest
+    # Para acessar http://localhost:8080
+    # usuario root:${MYSQL_ROOT_PASSWORD}
     image: bitnami/phpmyadmin:5.0.2-debian-10-r72
+    container_name: phpmyadmin-develop
     ports:
       - 8080:80
       - 8443:443
     environment:
         DATABASE_HOST: mysql
+    network_mode: 'bridge'
+    restart: always
+    links: 
+      - 'mysql'
